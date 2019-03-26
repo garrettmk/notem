@@ -20,7 +20,14 @@ export function reduceTransforms(item, transforms) {
 }
 
 export function distance(a, b) {
-  return Math.sqrt((a.x - b.x)**2 + (a.y - b.y)**2);
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+
+  return {
+    dx,
+    dy,
+    dr: Math.sqrt(dx**2 + dy**2)
+  }
 }
 
 export function pointsUp(radians) {
