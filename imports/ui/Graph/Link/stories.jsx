@@ -2,7 +2,7 @@ import React from "react";
 import { storiesOf } from "@storybook/react";
 import { withKnobs, number, optionsKnob } from "@storybook/addon-knobs";
 
-import LinkLine from "./component";
+import Link from "./component";
 
 const directionsObj = {
   Right: 0,
@@ -11,7 +11,7 @@ const directionsObj = {
   Down: Math.PI * 3 / 2,
 };
 
-storiesOf('LinkLine', module)
+storiesOf('Link', module)
   .addDecorator(withKnobs)
   .add('component', () => {
 
@@ -48,9 +48,9 @@ storiesOf('LinkLine', module)
           strokeWidth={1}
           strokeDasharray={[2, 2]}
         />
-        <LinkLine
-          sourceAttachPoint={sourceAttachPoint}
-          targetAttachPoint={targetAttachPoint}
+        <Link
+          sourceAttachPoints={[sourceAttachPoint]}
+          targetAttachPoints={[targetAttachPoint]}
         />
       </svg>
     )

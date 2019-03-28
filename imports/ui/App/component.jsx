@@ -3,22 +3,37 @@ import { withTracker } from "meteor/react-meteor-data";
 import { Layout, Typography, Button } from "antd";
 
 import { Nodes } from "../../api/nodes";
+import { Links } from "../../api/links";
 
-import Graph from "../Graph";
+import InteractiveGraph from "../InteractiveGraph";;
 import "./styles.less";
 
 
-const App = ({ nodes, onUpdateNode }) => {
+const App = ({ nodes, onNodeUpdated, links, onLinkUpdated }) => {
   const [siderCollapsed, setSiderCollapsed] = React.useState(false);
 
-  const handleCreateNode = () => {
+  const [isDroppingNode, setIsDroppingNode] = React.useState();
+  const handleDropNode = ({ position }) => {
     Nodes.insert({
       title: 'New node',
-      position: {
-        x: 100,
-        y: 100
-      }
-    })
+      position
+    });
+    setIsDroppingNode(false);
+  };
+
+  const handleDragNode = ({ _id, ...updates}) => {
+    onNodeUpdated && onNodeUpdated(_id, updates);
+  };
+
+  const [isDroppingLink, setIsDroppingLink] = React.useState();
+  const handleDropLink = ({ sourceId, targetId }) => {
+    console.log(sourceId, targetId);
+    Links.insert({
+      type: 'normal',
+      sourceId,
+      targetId
+    });
+    setIsDroppingLink(false);
   };
 
   return (
@@ -32,12 +47,19 @@ const App = ({ nodes, onUpdateNode }) => {
       </Layout.Sider>
       <Layout className={'content-layout'}>
         <Layout.Header className={'content-header'}>
-          <Button onClick={handleCreateNode}>New Node</Button>
+          <Button onClick={() => setIsDroppingNode(true)}>New Node</Button>
+          <Button onClick={() => setIsDroppingLink(true)}>New Link</Button>
         </Layout.Header>
-        <Layout.Content>
-          <Graph
+        <Layout.Content className={'layout-content'}>
+          <InteractiveGraph
             className={'app-graph'}
-            {...{ nodes, onUpdateNode }}
+            nodes={nodes}
+            dropNode={{ isDroppingNode, onDropNode: handleDropNode }}
+            dropLink={{ isDroppingLink, onDropLink: handleDropLink }}
+            drag={{
+              allowDraggingNodes: true,
+              onDragNodeEnd: handleDragNode,
+            }}
           />
         </Layout.Content>
       </Layout>
@@ -47,12 +69,13 @@ const App = ({ nodes, onUpdateNode }) => {
 
 export default withTracker(() => {
   Meteor.subscribe('nodes');
+  Meteor.subscribe('links');
 
   return {
     nodes: Nodes.find({}).fetch(),
-    onUpdateNode: (nodeId, updates) => {
-      console.log(nodeId, updates);
+    onNodeUpdated: (nodeId, updates) => {
       Meteor.call('nodes.update', nodeId, { $set: updates })
-    }
+    },
+    links: Links.find({}).fetch(),
   }
 })(App);

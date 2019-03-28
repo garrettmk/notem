@@ -1,57 +1,109 @@
 import React from "react";
 import PropTypes from "prop-types";
 import classNames from "classnames";
-import * as d3 from "d3";
 
-import { distance } from "../../utils/geometry";
+import {distance, pointsDown, pointsLeft, pointsRight, pointsUp} from "../../utils/geometry";
 
-import LinkLine from "../LinkLine";
 import "./styles.less";
 
 
-const Link = ({ className, sourceGeometry, targetGeometry, ...otherProps }) => {
+const Link = ({ className, sourceAttachPoints, targetAttachPoints, ...otherProps }) => {
 
-  if (!sourceGeometry.attachPoints || !sourceGeometry.attachPoints.length
-    || !targetGeometry.attachPoints || !targetGeometry.attachPoints.length)
+  if (!sourceAttachPoints.length || !targetAttachPoints.length)
     return null;
 
   let pointsAndDistances = [];
-  sourceGeometry.attachPoints.forEach(sourceAttachPoint => {
-    targetGeometry.attachPoints.forEach(targetAttachPoint => {
+  sourceAttachPoints.forEach(sourceAttachPoint => {
+    targetAttachPoints.forEach(targetAttachPoint => {
       pointsAndDistances.push({
         sourceAttachPoint,
         targetAttachPoint,
-        distance: distance(sourceAttachPoint, targetAttachPoint).dr
+        distance: distance(sourceAttachPoint, targetAttachPoint)
       })
     })
   });
 
-  const { sourceAttachPoint, targetAttachPoint } = pointsAndDistances.sort((a, b) => a.distance - b.distance)[0];;
+  const {
+    sourceAttachPoint,
+    targetAttachPoint,
+    distance: { dx, dy }
+  } = pointsAndDistances.sort((a, b) => a.distance.dr - b.distance.dr)[0];
+
+  let sourceControlPt, targetControlPt;
+
+  if (pointsRight(sourceAttachPoint.direction))
+    sourceControlPt = {
+      x: sourceAttachPoint.x + Math.abs(dx / 2),
+      y: sourceAttachPoint.y
+    };
+  else if (pointsUp(sourceAttachPoint.direction))
+    sourceControlPt = {
+      x: sourceAttachPoint.x,
+      y: sourceAttachPoint.y - Math.abs(dy / 2)
+    };
+  else if (pointsLeft(sourceAttachPoint.direction))
+    sourceControlPt = {
+      x: sourceAttachPoint.x - Math.abs(dx / 2),
+      y: sourceAttachPoint.y
+    };
+  else if (pointsDown(sourceAttachPoint.direction))
+    sourceControlPt = {
+      x: sourceAttachPoint.x,
+      y: sourceAttachPoint.y + Math.abs(dy / 2)
+    };
+
+  if (pointsRight(targetAttachPoint.direction))
+    targetControlPt = {
+      x: targetAttachPoint.x + Math.abs(dx / 2),
+      y: targetAttachPoint.y
+    };
+  else if (pointsUp(targetAttachPoint.direction))
+    targetControlPt = {
+      x: targetAttachPoint.x,
+      y: targetAttachPoint.y - Math.abs(dy / 2)
+    };
+  else if (pointsLeft(targetAttachPoint.direction))
+    targetControlPt = {
+      x: targetAttachPoint.x - Math.abs(dx / 2),
+      y: targetAttachPoint.y
+    };
+  else if (pointsDown(targetAttachPoint.direction))
+    targetControlPt = {
+      x: targetAttachPoint.x,
+      y: targetAttachPoint.y + Math.abs(dy / 2)
+    };
+
+  const d = `
+    M ${sourceAttachPoint.x} ${sourceAttachPoint.y}
+    C ${sourceControlPt.x} ${sourceControlPt.y} ${targetControlPt.x} ${targetControlPt.y} ${targetAttachPoint.x} ${targetAttachPoint.y}
+  `;
+
 
   return (
-    <LinkLine {...{ className, sourceAttachPoint, targetAttachPoint, ...otherProps }} />
+    <path
+      className={classNames('graph-link', className)}
+      d={d}
+      {...otherProps}
+    />
   )
 };
 
 Link.propTypes = {
-  sourceGeometry: PropTypes.shape({
-    attachPoints: PropTypes.arrayOf(PropTypes.shape({
-      x: PropTypes.number.isRequired,
-      y: PropTypes.number.isRequired,
-    }))
-  }).isRequired,
-
-  targetGeometry: PropTypes.shape({
-    attachPoints: PropTypes.arrayOf(PropTypes.shape({
-      x: PropTypes.number.isRequired,
-      y: PropTypes.number.isRequired
-    }))
-  })
+  sourceAttachPoints: PropTypes.arrayOf(PropTypes.shape({
+    x: PropTypes.number.isRequired,
+    y: PropTypes.number.isRequired,
+    direction: PropTypes.number.isRequired
+  })).isRequired,
+  targetAttachPoints: PropTypes.arrayOf(PropTypes.shape({
+    x: PropTypes.number.isRequired,
+    y: PropTypes.number.isRequired,
+    direction: PropTypes.number.isRequired
+  })).isRequired
 };
 
 Link.defaultProps = {
-  sourceGeometry: {},
-  targetGeometry: {}
+  sourceAttachPoints: [],
+  targetAttachPoints: []
 };
 
 export default Link;

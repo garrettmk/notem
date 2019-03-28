@@ -1,10 +1,11 @@
 import React from "react";
 import { storiesOf } from "@storybook/react";
-import { withKnobs, array } from "@storybook/addon-knobs";
+import { withKnobs, number } from "@storybook/addon-knobs";
 import { action } from "@storybook/addon-actions";
 
 import Graph from "./component";
-
+import BasicNode from "./BasicNode";
+import Link from "./Link";
 
 storiesOf('Graph', module)
   .addDecorator(withKnobs)
@@ -15,22 +16,24 @@ storiesOf('Graph', module)
         height: 600,
         border: '1px dashed gray'
       }}
-      nodes={[
-        {
-          _id: '1',
-          position: { x: 50, y: 50 },
-          title: 'This is a node.'
-        },
-        {
-          _id: '2',
-          position: { x: 200, y: 200 },
-          title: 'Another node'
-        }
-      ]}
-      links={[
-        { id: 1, sourceId: 1, targetId: 2, }
-      ]}
-      onUpdateNode={action('onUpdateNode')}
-      onUpdateLink={action('onUpdateLink')}
-    />
+    >
+      <BasicNode
+        geometryId={'node1'}
+        position={{ x: 100, y: 100}}
+        text={'Node 1'}
+      />
+      <BasicNode
+        geometryId={'node2'}
+        position={{
+          x: number('node2_x', 300),
+          y: 300
+        }}
+        text={'Node 2'}
+      />
+      <Link
+        geometryId={'link1'}
+        sourceId={'node1'}
+        targetId={'node2'}
+      />
+    </Graph>
   ));
