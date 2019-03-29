@@ -3,10 +3,13 @@ import PropTypes from "prop-types";
 import classNames from "classnames";
 
 import { useDimensions } from "../../utils/hooks";
+import { calculateRenderedTextSize } from "../../utils/geometry";
 import "./styles.less";
 
 
 const BasicNode = ({ className, position, text, onGeometryUpdated, ...otherProps }) => {
+  console.log(text, calculateRenderedTextSize(text, {'class': 'graph-node-title'}));
+
   const [titleRef, titleDimensions] = useDimensions([text]);
 
   const padding = 16;

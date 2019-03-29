@@ -1,23 +1,6 @@
+import ReactDOMServer from "react-dom/server";
 import classNames from "classnames";
 
-export function translatation(deltas) {
-  return point => ({
-    ...point,
-    x: point.x + deltas.dx,
-    y: point.y + deltas.dy,
-  })
-}
-
-export function classed(newClasses) {
-  return item => ({
-    ...item,
-    className: classNames(item.className, newClasses)
-  })
-}
-
-export function reduceTransforms(item, transforms) {
-  return transforms.reduce((newItem, transform) => transform(newItem), {});
-}
 
 export function distance(a, b) {
   const dx = b.x - a.x;
@@ -49,4 +32,38 @@ export function pointsLeft(radians) {
 export function pointsRight(radians) {
   const normalized = radians % (2 * Math.PI);
   return normalized < Math.PI / 4 || normalized > 7 * Math.PI / 4;
+}
+
+function getScratchSVG() {
+  let currentSVG = document.getElementById('scratch-svg');
+  if (!currentSVG) {
+    currentSVG = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    currentSVG.id = 'scratch-svg';
+    currentSVG.style.position = 'absolute';
+    currentSVG.style.top = -1000;
+    currentSVG.style.left = -1000;
+    document.body.appendChild(currentSVG);
+  }
+
+  return currentSVG;
+}
+
+export function calculateRenderedTextSize(text, attrs = {}) {
+
+  const elem = document.createElementNS('http://www.w3.org/2000/svg','text');
+  Object.keys(attrs).forEach(key => elem.setAttribute(key, attrs[key]));
+
+  const textNode = document.createTextNode(text);
+  elem.appendChild(textNode);
+
+  const svg = getScratchSVG();
+  svg.appendChild(elem);
+
+  const rect = elem.getBoundingClientRect();
+  svg.removeChild(elem);
+
+  return {
+    width: rect.width,
+    height: rect.height,
+  };
 }
